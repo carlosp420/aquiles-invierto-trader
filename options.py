@@ -32,7 +32,7 @@ def make_option(symbol, expiry, strike, right, multiplier="100", exchange="SMART
     return contract
 
 
-def close_open_positions(app):
+def close_open_positions(app, dry_run=False):
     """Read downloaded CSV of Options Trading google sheet
 
     Extract the PUT options and their date they were sold to open.
@@ -48,18 +48,18 @@ def close_open_positions(app):
     for idx, row in df.iterrows():
         ticker = row['Ticker.1'].strip()
         avg_cost = float(row['Ticker'].split(" ")[-1])
-        days_since_sold = int(row['Days since sold'])
+        days_since_sold = int(row['Days since open'])
         num_contracts = abs(int(row['Num Contratos']))
 
         if days_since_sold < 1:
             buy_price = avg_cost * 0.75  # Buy To Close if price dropped 25%
         elif days_since_sold <= 7:
-            buy_price = avg_cost * 0.70  # Buy To Close if price dropped 30%
+            buy_price = avg_cost * 0.50  # Buy To Close if price dropped 50%
         else:
             # days_since_sold > 7:
-            buy_price = avg_cost * 0.50  # Buy To Close if price dropped 50%
+            buy_price = avg_cost * 0.30  # Buy To Close if price dropped 70%
 
-        if ticker in ['CPER']:
+        if ticker in ['CPER', 'EZU']:
             buy_price = round(buy_price, 1)
         else:
             buy_price = round(buy_price, 2)
@@ -69,10 +69,12 @@ def close_open_positions(app):
         right = row['Ticker'].split(" ")[3]
         contract = make_option(ticker, expiry, strike, right)
 
-        order_id = app.nextValidOrderId
+        print(f"BUY {num_contracts} {ticker} {expiry} {strike} {right} {buy_price}")
 
-        print(f"\nBUY {num_contracts} {ticker} {expiry} {strike} {right} {buy_price} order_id: {order_id}")
-        place_order(
-            app, order_id, action="BUY", limit_price=buy_price, contract=contract, num_contracts=num_contracts
-        )
-        app.nextOrderId()
+        if not dry_run:
+            order_id = app.nextValidOrderId
+
+            place_order(
+                app, order_id, action="BUY", limit_price=buy_price, contract=contract, num_contracts=num_contracts
+            )
+            app.nextOrderId()

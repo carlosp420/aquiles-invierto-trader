@@ -1,3 +1,5 @@
+import argparse
+
 from ibapi.client import EClient
 from ibapi.common import SetOfString, SetOfFloat
 from ibapi.order import Order
@@ -140,10 +142,6 @@ def fetch_historical_data(req_num, contract, duration, candle_size):
     )  # EClient function to request contract details
 
 
-def websocket_con():
-    app.run()
-
-
 def data_to_dataframes(symbols, trade_app):
     """returns extracted historical data in dataframe format"""
     df_data = {}
@@ -158,6 +156,10 @@ def start_app():
     app.connect(
         host="127.0.0.1", port=7496, clientId=23
     )
+
+    def websocket_con():
+        app.run()
+
     con_thread = threading.Thread(target=websocket_con, daemon=True)
     con_thread.start()
     time.sleep(1)  # some latency added to ensure that the connection is established
@@ -220,8 +222,15 @@ def modify_order(ticker, order_id):
 # print(pos_d)
 
 if __name__ == "__main__":
-    app = start_app()
+    parser = argparse.ArgumentParser(prog="Aquiles trader")
+    parser.add_argument('--dry-run', action=argparse.BooleanOptionalAction)
+    dry_run = parser.parse_args().dry_run
+
+    if not dry_run:
+        app = start_app()
+    else:
+        app = None
 
     time.sleep(5)
-    close_open_positions(app)
+    close_open_positions(app, dry_run)
     time.sleep(5)
