@@ -16,6 +16,7 @@ def place_order(
     order_type: LMT, MKT, STP
     """
     order = Order()
+    order.allOrNone = True
     order.action = action
     order.orderType = order_type
     order.totalQuantity = num_contracts
