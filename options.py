@@ -59,7 +59,7 @@ def close_open_positions(app, dry_run=False):
             # days_since_sold > 7:
             buy_price = avg_cost * 0.30  # Buy To Close if price dropped 70%
 
-        if ticker in ['CPER', 'EZU']:
+        if ticker in ['CPER', 'EZU', 'SPX']:
             buy_price = round(buy_price, 1)
         else:
             buy_price = round(buy_price, 2)
