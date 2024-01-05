@@ -9,7 +9,7 @@ import pandas as pd
 import threading
 import time
 
-from options import close_open_positions
+from options import close_open_positions_csv
 
 
 class TradeApp(EWrapper, EClient):
@@ -232,5 +232,5 @@ if __name__ == "__main__":
         app = None
 
     time.sleep(5)
-    close_open_positions(app, dry_run)
+    close_open_positions_csv(app, dry_run)
     time.sleep(5)
